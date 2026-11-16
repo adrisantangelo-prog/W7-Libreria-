@@ -30,4 +30,116 @@ body {
 .site-header p  { margin: 0; opacity: 0.85; }
 
 
-/* Aggiungi qui le tue regole per form, lista libri, bottoni, ecc. */
+/* === Form === */
+
+.form-section {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  padding: 20px 24px;
+  margin: 20px 0 30px;
+}
+
+.form-section h2 { margin-top: 0; }
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 14px;
+}
+
+.campo label {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.campo input,
+.campo select {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font: inherit;
+}
+
+/* display:flex su .campo vincerebbe su [hidden]: lo forziamo */
+.campo[hidden] { display: none; }
+
+.btn-primary {
+  background: hsl(220, 50%, 25%);
+  color: white;
+  border: 0;
+  border-radius: 4px;
+  padding: 8px 22px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.btn-primary:hover { background: hsl(220, 50%, 35%); }
+
+
+/* === Lista libri === */
+
+#lista-libri {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#lista-libri li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  background: white;
+  border-left: 4px solid hsl(220, 50%, 25%);
+  border-radius: 4px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+
+#lista-libri li.letto {
+  border-left-color: hsl(140, 40%, 58%);
+  background: #fafafa;
+  opacity: 0.7;
+}
+
+.titolo { font-weight: 700; }
+
+.badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 9px;
+  background: #eee;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.meta {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.azioni {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.azioni button {
+  background: white;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  padding: 5px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.azioni button:hover { background: #f0f0f0; }
+
+/* EXTRA 16 */
+.azioni button[data-azione="rimuovi"] {
+  color: #b3261e;
+  border-color: #e3b3af;
+}

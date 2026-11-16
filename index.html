@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mini-libreria — Settimana VII Giorno I</title>
-    <link rel="stylesheet" href="assets\css\style.css">
+    <link rel="stylesheet" href="assets/css/style.css">
   </head>
   <body>
 
@@ -16,11 +16,43 @@
     <main class="container">
 
       <section class="form-section">
-        <!-- form per aggiungere un libro: titolo, autore, anno, formato (cartaceo/digitale) -->
+        <h2>Aggiungi un libro</h2>
+        <form id="aggiungi-libro" class="form">
+          <div class="campo">
+            <label for="titolo">Titolo</label>
+            <input type="text" id="titolo" name="titolo" required>
+          </div>
+          <div class="campo">
+            <label for="autore">Autore</label>
+            <input type="text" id="autore" name="autore" required>
+          </div>
+          <div class="campo">
+            <label for="anno">Anno</label>
+            <input type="number" id="anno" name="anno" required>
+          </div>
+          <div class="campo">
+            <label for="formato">Formato</label>
+            <select id="formato" name="formato">
+              <option value="cartaceo">Cartaceo</option>
+              <option value="digitale">Digitale</option>        
+              <option value="audio">Audio</option>
+            </select>
+          </div>
+          <div class="campo campo-condizionale" id="campo-dimensione" hidden>
+            <label for="dimensioneMb">Dimensione MB</label>
+            <input type="number" step="0.1" id="dimensioneMb" name="dimensioneMb">
+          </div>        
+          <div class="campo campo-condizionale" id="campo-durata" hidden>
+            <label for="durataMinuti">Durata (minuti)</label>
+            <input type="number" id="durataMinuti" name="durataMinuti">
+          </div>
+
+          <button type="submit" class="btn-primary">Aggiungi</button>
+        </form>
       </section>
 
       <section class="lista-section">
-        <h2>I tuoi libri</h2>
+        <h2>I tuoi libri (<span id="contatore">0</span>)</h2>
         <ul id="lista-libri">
           <!-- popolato da JavaScript -->
         </ul>
@@ -28,6 +60,6 @@
 
     </main>
 
-    <script src="assets\js\script.js"></script>
+    <script src="assets/js/script.js"></script>
   </body>
 </html>
