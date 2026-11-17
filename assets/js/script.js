@@ -230,10 +230,18 @@ document.getElementById("svuota-tutto").addEventListener("click", () => {
 });
 
 // EXTRA 16: esporta JSON in una nuova tab
+/* Trasforma l’array libri in una stringa di testo JSON. Prende tre argomenti:
+libri è cosa trasformare.
+null è un filtro opzionale. Con null vengono incluse tutte le proprietà.
+2 sono gli spazi di rientro, per avere un testo leggibile su più righe invece che tutto su una riga. */
+// domani lo sostitusci utiliazzando Postman e Api
 document.getElementById("esporta").addEventListener("click", () => {
   const json = JSON.stringify(libri, null, 2);
   window.open("data:application/json;charset=utf-8," + encodeURIComponent(json));
 });
+
+
+
 
 // EXTRA 17: filtro (delegato sul contenitore dei 3 bottoni)
 document.getElementById("filtri").addEventListener("click", (e) => {
