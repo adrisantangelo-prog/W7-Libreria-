@@ -143,3 +143,102 @@ body {
   color: #b3261e;
   border-color: #e3b3af;
 }
+
+
+/* === Giorno II: header lista, svuota, info storage === */
+
+.lista-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.lista-header h2 { margin: 0; }
+
+.header-azioni {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-svuota {
+  background: white;
+  color: #b3261e;
+  border: 1px solid #b3261e;
+  border-radius: 4px;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.btn-svuota:hover { background: #fdecea; }
+
+.info-storage {
+  font-style: italic;
+  font-size: 0.85rem;
+  color: #777;
+  margin: 4px 0 16px;
+}
+
+
+/* === EXTRA 16: esporta === */
+
+.btn-secondario {
+  background: white;
+  color: hsl(220, 50%, 25%);
+  border: 1px solid hsl(220, 50%, 25%);
+  border-radius: 4px;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.btn-secondario:hover { background: #eef1f7; }
+
+
+/* === EXTRA 17 e 18: filtri e ordinamento === */
+
+.strumenti {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.filtri { display: flex; }
+
+.filtri button {
+  background: white;
+  border: 1px solid #ccc;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.filtri button + button { border-left: 0; }
+.filtri button:first-child { border-radius: 4px 0 0 4px; }
+.filtri button:last-child  { border-radius: 0 4px 4px 0; }
+
+.filtri button.attivo {
+  background: hsl(220, 50%, 25%);
+  color: white;
+  border-color: hsl(220, 50%, 25%);
+}
+
+.ordina {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.ordina select {
+  margin-left: 6px;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font: inherit;
+}

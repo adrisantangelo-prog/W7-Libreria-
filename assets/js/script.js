@@ -1,10 +1,7 @@
-// Mini-libreria — Settimana VII Giorno I
+// Mini-libreria persistente — Settimana VII Giorno II
 //
-// 1. Classe Libro (id, titolo, autore, anno, letto)
-// 2. Classe LibroDigitale che estende Libro (aggiunge dimensioneMb)
-// 3. Listener sul form che crea l'istanza giusta e la aggiunge all'array
-// 4. Render della lista nel <ul id="lista-libri">
-// Bonus: "Segna come letto" con event delegation + extra 15-17
+// Base di ieri (classi, form, render, click delegato) +
+// persistenza con localStorage: salva, carica, svuota.
 
 
 // === Classi ===
@@ -26,7 +23,15 @@ class Libro {
     return "cartaceo";
   }
 
-  // EXTRA 17
+  // Passo 4: da oggetto "puro" (JSON) a istanza vera.
+  // `this` è la classe su cui lo chiami: Libro.fromJSON crea un Libro,
+  // LibroDigitale.fromJSON crea un LibroDigitale (il metodo è ereditato).
+  // Object.assign poi copia sopra tutto il resto: id originale, letto, dimensioneMb…
+  static fromJSON(d) {
+    return Object.assign(new this(d.titolo, d.autore, d.anno), d);
+  }
+
+  // EXTRA di ieri (17)
   static daStringa(s) {
     const [titolo, autore, anno] = s.split("|");
     return new Libro(titolo, autore, Number(anno));
@@ -44,7 +49,7 @@ class LibroDigitale extends Libro {
   }
 }
 
-// EXTRA 15
+// EXTRA di ieri (15)
 class LibroAudio extends Libro {
   constructor(_titolo, _autore, _anno, _durataMinuti) {
     super(_titolo, _autore, _anno);
@@ -56,14 +61,58 @@ class LibroAudio extends Libro {
   }
 }
 
-// === Stato (array di libri) ===
-let libri = []; // let perché l'EXTRA 16 la riassegna con filter
+
+// === Persistenza (passi 1-4) ===
+const STORAGE_KEY = "libri";
+
+function salvaLibri() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(libri));
+}
+
+function caricaLibri() {
+  // getItem restituisce null se la chiave non esiste → ?? "[]" → array vuoto
+  const dati = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
+
+  // JSON.parse dà oggetti puri, senza metodi (niente formato(), segnaComeLetto()):
+  // li ri-istanziamo nella classe giusta guardando quali proprietà hanno.
+  return dati.map((d) => {
+    if (d.dimensioneMb !== undefined) return LibroDigitale.fromJSON(d);
+    if (d.durataMinuti !== undefined) return LibroAudio.fromJSON(d);
+    return Libro.fromJSON(d);
+  });
+}
+
+
+// === Stato ===
+// Passo 6: let, perché "Svuota tutto" e "Rimuovi" riassegnano l'array
+let libri = caricaLibri();
+
+// EXTRA 17 e 18: stato della sola visualizzazione (non viene salvato)
+let filtro = "tutti";        // "tutti" | "letti" | "da-leggere"
+let ordinamento = "nessuno"; // "nessuno" | "titolo" | "anno"
+
 
 // === Render ===
-// createElement + textContent (non innerHTML): titolo e autore
-// arrivano dall'utente, così non può essere iniettato HTML.
+function libriDaMostrare() {
+  // EXTRA 17: filtro
+  const filtrati = libri.filter((l) => {
+    if (filtro === "letti") return l.letto;
+    if (filtro === "da-leggere") return !l.letto;
+    return true;
+  });
+
+  // EXTRA 18: toSorted ordina una copia, l'array salvato resta com'è
+  if (ordinamento === "titolo") {
+    return filtrati.toSorted((a, b) => a.titolo.localeCompare(b.titolo));
+  }
+  if (ordinamento === "anno") {
+    return filtrati.toSorted((a, b) => a.anno - b.anno);
+  }
+  return filtrati;
+}
+
 function renderLibri() {
-  const righe = libri.map((l) => {
+  const righe = libriDaMostrare().map((l) => {
     const li = document.createElement("li");
     if (l.letto) li.classList.add("letto");
     li.dataset.id = l.id;
@@ -86,7 +135,7 @@ function renderLibri() {
 
     info.append(titolo, badge, meta);
 
-    // azioni: bottone "leggi" oppure "✓ letto"
+    // azioni: "Segna come letto" oppure "✓ letto", e sempre "Rimuovi" (passo 13)
     const azioni = document.createElement("div");
     azioni.className = "azioni";
 
@@ -95,19 +144,18 @@ function renderLibri() {
       fatto.textContent = "✓ letto";
       azioni.append(fatto);
     } else {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.dataset.azione = "leggi";
-      btn.textContent = "Segna come letto";
-      azioni.append(btn);
+      const btnLeggi = document.createElement("button");
+      btnLeggi.type = "button";
+      btnLeggi.dataset.azione = "leggi";
+      btnLeggi.textContent = "Segna come letto";
+      azioni.append(btnLeggi);
     }
 
-    // EXTRA 16
-    const rimuovi = document.createElement("button");
-    rimuovi.type = "button";
-    rimuovi.dataset.azione = "rimuovi";
-    rimuovi.textContent = "Rimuovi";
-    azioni.append(rimuovi);
+    const btnRimuovi = document.createElement("button");
+    btnRimuovi.type = "button";
+    btnRimuovi.dataset.azione = "rimuovi";
+    btnRimuovi.textContent = "Rimuovi";
+    azioni.append(btnRimuovi);
 
     li.append(info, azioni);
     return li;
@@ -117,11 +165,12 @@ function renderLibri() {
   document.getElementById("contatore").textContent = libri.length;
 }
 
+
 // === Eventi ===
 
-// change sulla select
+// change sulla select del formato: mostra il campo giusto
 const campoDimensione = document.getElementById("campo-dimensione");
-const campoDurata = document.getElementById("campo-durata"); // EXTRA 15
+const campoDurata = document.getElementById("campo-durata");
 
 function aggiornaCampiCondizionali(valore) {
   campoDimensione.hidden = valore !== "digitale";
@@ -132,7 +181,7 @@ document.getElementById("formato").addEventListener("change", (e) => {
   aggiornaCampiCondizionali(e.target.value);
 });
 
-// submit del form
+// submit del form (passo 7: salva dopo il push)
 document.getElementById("aggiungi-libro").addEventListener("submit", (e) => {
   e.preventDefault();
 
@@ -149,13 +198,14 @@ document.getElementById("aggiungi-libro").addEventListener("submit", (e) => {
   }
 
   libri.push(nuovo);
+  salvaLibri();
   renderLibri();
 
   e.target.reset();
   aggiornaCampiCondizionali("cartaceo");
 });
 
-// click delegato sulla lista
+// click delegato sulla lista (passi 8 e 14)
 document.getElementById("lista-libri").addEventListener("click", (e) => {
   const bottone = e.target.closest("[data-azione]");
   if (!bottone) return;
@@ -163,17 +213,46 @@ document.getElementById("lista-libri").addEventListener("click", (e) => {
   const id = bottone.closest("li").dataset.id; // stringa UUID, niente parseInt
 
   if (bottone.dataset.azione === "leggi") {
-    const libro = libri.find((l) => l.id === id);
-    libro.segnaComeLetto();
+    libri.find((l) => l.id === id).segnaComeLetto();
   } else if (bottone.dataset.azione === "rimuovi") {
-    // EXTRA 16
     libri = libri.filter((l) => l.id !== id);
   }
 
+  salvaLibri();
   renderLibri();
 });
 
-// EXTRA 17: verifica
-//console.log(Libro.daStringa("1984|Orwell|1949"));
+// Svuota tutto (passo 11)
+document.getElementById("svuota-tutto").addEventListener("click", () => {
+  libri = [];
+  localStorage.removeItem(STORAGE_KEY);
+  renderLibri();
+});
 
-//renderLibri();
+// EXTRA 16: esporta JSON in una nuova tab
+document.getElementById("esporta").addEventListener("click", () => {
+  const json = JSON.stringify(libri, null, 2);
+  window.open("data:application/json;charset=utf-8," + encodeURIComponent(json));
+});
+
+// EXTRA 17: filtro (delegato sul contenitore dei 3 bottoni)
+document.getElementById("filtri").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-filtro]");
+  if (!btn) return;
+
+  filtro = btn.dataset.filtro;
+  document.querySelectorAll("#filtri [data-filtro]").forEach((b) => {
+    b.classList.toggle("attivo", b === btn);
+  });
+  renderLibri();
+});
+
+// EXTRA 18: ordinamento (solo visualizzazione, con toSorted)
+document.getElementById("ordina").addEventListener("change", (e) => {
+  ordinamento = e.target.value;
+  renderLibri();
+});
+
+
+// Primo render: mostra i libri caricati da localStorage
+renderLibri();
