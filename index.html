@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini-libreria persistente — Settimana VII Giorno II</title>
+    <title>Mini-libreria — Settimana VII Giorno III</title>
     <link rel="stylesheet" href="assets/css/style.css">
   </head>
   <body>
@@ -14,6 +14,20 @@
     </header>
 
     <main class="container">
+
+      <!-- Giorno III: ricerca su Open Library -->
+      <section class="cerca-section">
+        <h2>Cerca</h2>
+        <div class="campo">
+          <label for="cerca">Cerca su Open Library</label>
+          <input type="text" id="cerca" placeholder="es. harari, tolkien…" autocomplete="off">
+        </div>
+
+        <div id="spinner" class="spinner" hidden>Caricamento in corso…</div>
+        <div id="errore" class="alert alert-danger" hidden></div>
+
+        <ul id="risultati" class="risultati"></ul>
+      </section>
 
       <section class="form-section">
         <h2>Aggiungi un libro</h2>

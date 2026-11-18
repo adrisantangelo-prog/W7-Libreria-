@@ -1,7 +1,8 @@
-// Mini-libreria persistente — Settimana VII Giorno II
+// Mini-libreria — Settimana VII Giorno III
 //
-// Base di ieri (classi, form, render, click delegato) +
-// persistenza con localStorage: salva, carica, svuota.
+// Giorno I:   classi, form, render, click delegato
+// Giorno II:  persistenza con localStorage
+// Giorno III: ricerca su Open Library con fetch + debounce + AbortController
 
 
 // === Classi ===
@@ -229,19 +230,13 @@ document.getElementById("svuota-tutto").addEventListener("click", () => {
   renderLibri();
 });
 
-// EXTRA 16: esporta JSON in una nuova tab
-/* Trasforma l’array libri in una stringa di testo JSON. Prende tre argomenti:
-libri è cosa trasformare.
-null è un filtro opzionale. Con null vengono incluse tutte le proprietà.
-2 sono gli spazi di rientro, per avere un testo leggibile su più righe invece che tutto su una riga. */
-// domani lo sostitusci utiliazzando Postman e Api
+// EXTRA 16 (Giorno II): esporta JSON in una nuova tab
+// Blob invece di data: URL, che i browser moderni bloccano
 document.getElementById("esporta").addEventListener("click", () => {
   const json = JSON.stringify(libri, null, 2);
-  window.open("data:application/json;charset=utf-8," + encodeURIComponent(json));
+  const blob = new Blob([json], { type: "application/json" });
+  window.open(URL.createObjectURL(blob));
 });
-
-
-
 
 // EXTRA 17: filtro (delegato sul contenitore dei 3 bottoni)
 document.getElementById("filtri").addEventListener("click", (e) => {
@@ -262,5 +257,192 @@ document.getElementById("ordina").addEventListener("change", (e) => {
 });
 
 
-// Primo render: mostra i libri caricati da localStorage
-renderLibri();
+// =====================================================
+// === Giorno III: ricerca su Open Library ===
+// =====================================================
+
+const spinner = document.getElementById("spinner");
+const errore = document.getElementById("errore");
+const listaRisultati = document.getElementById("risultati");
+const inputCerca = document.getElementById("cerca");
+
+const QUERY_KEY = "ultimaQuery"; // EXTRA 19
+
+
+// --- Passo 4: helper per gli stati ---
+function mostraSpinner() {
+  spinner.hidden = false;
+  errore.hidden = true;
+}
+
+function nascondiSpinner() {
+  spinner.hidden = true;
+}
+
+function mostraErrore(msg) {
+  errore.textContent = msg;
+  errore.hidden = false;
+}
+
+
+// --- Passi 5-7: cerca(query) ---
+let controller;
+
+function cerca(query) {
+  controller?.abort();             // annulla la ricerca precedente, se c'è
+  controller = new AbortController();
+  const { signal } = controller;
+
+  mostraSpinner();
+  localStorage.setItem(QUERY_KEY, query); // EXTRA 19
+
+  const url = new URL("https://openlibrary.org/search.json");
+  url.searchParams.set("q", query);
+  url.searchParams.set("limit", 10);
+
+  fetch(url, { signal })
+    .then((r) => {
+      // fetch va in catch solo per errori di rete: un 404/500 va controllato a mano
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    })
+    .then((dati) => renderRisultati(dati.docs))
+    .catch((err) => {
+      if (err.name === "AbortError") return; // annullata da noi: non è un errore
+      mostraErrore(`Ricerca non riuscita: ${err.message}`);
+    })
+    .finally(() => {
+      // se è stata annullata, lo spinner serve alla ricerca nuova: non toccarlo
+      if (!signal.aborted) nascondiSpinner();
+    });
+}
+
+
+// --- Passi 8-10: renderRisultati(docs) ---
+function renderRisultati(docs) {
+  // EXTRA 18: scarta i libri senza autore
+  const validi = docs.filter((d) => d.author_name);
+
+  if (validi.length === 0) {
+    const li = document.createElement("li");
+    li.className = "nessuno";
+    li.textContent = "Nessun risultato.";
+    listaRisultati.replaceChildren(li);
+    return;
+  }
+
+  const righe = validi.map((d) => {
+    const autore = d.author_name?.[0] ?? "Autore sconosciuto";
+    const anno = d.first_publish_year ?? "?";
+
+    const li = document.createElement("li");
+
+    const info = document.createElement("div");
+    info.className = "info";
+
+    const titolo = document.createElement("span");
+    titolo.className = "titolo";
+    titolo.textContent = d.title; // textContent: dati da API esterna, niente XSS
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = `${autore} — ${anno}`;
+
+    info.append(titolo, meta);
+
+    const azioni = document.createElement("div");
+    azioni.className = "azioni";
+
+    // EXTRA 20
+    const btnDettagli = document.createElement("button");
+    btnDettagli.type = "button";
+    btnDettagli.textContent = "Dettagli";
+    btnDettagli.dataset.key = d.key; // es. "/works/OL82563W"
+
+    const btnAggiungi = document.createElement("button");
+    btnAggiungi.type = "button";
+    btnAggiungi.textContent = "Aggiungi";
+    btnAggiungi.dataset.titolo = d.title;
+    btnAggiungi.dataset.autore = autore;
+    btnAggiungi.dataset.anno = anno;
+
+    azioni.append(btnDettagli, btnAggiungi);
+    li.append(info, azioni);
+    return li;
+  });
+
+  listaRisultati.replaceChildren(...righe);
+}
+
+
+// --- Passi 11-12: input con debounce ---
+let timeoutId;
+
+inputCerca.addEventListener("input", (e) => {
+  const query = e.target.value.trim();
+
+  clearTimeout(timeoutId); // ogni tasto azzera il timer
+
+  if (query.length < 3) {
+    listaRisultati.innerHTML = "";
+    controller?.abort();          // niente risultati "in ritardo" dopo aver cancellato
+    nascondiSpinner();
+    errore.hidden = true;
+    localStorage.removeItem(QUERY_KEY); // EXTRA 19
+    return;
+  }
+
+  // debounce: parte solo se non scrivi nulla per 1000ms
+  timeoutId = setTimeout(() => cerca(query), 1000);
+});
+
+
+// --- Passo 13: click delegato sui risultati ---
+listaRisultati.addEventListener("click", (e) => {
+  // Aggiungi
+  const bottone = e.target.closest("button[data-titolo]");
+  if (bottone) {
+    const { titolo, autore, anno } = bottone.dataset;
+    const nuovo = new Libro(titolo, autore, Number(anno) || 0); // "?" → NaN → 0
+
+    libri.push(nuovo);
+    salvaLibri();
+    renderLibri();
+
+    bottone.textContent = "✓ Aggiunto";
+    bottone.disabled = true;
+    return;
+  }
+
+  // EXTRA 20: Dettagli
+  const btnDettagli = e.target.closest("button[data-key]");
+  if (btnDettagli) mostraDettagli(btnDettagli.dataset.key);
+});
+
+
+// --- EXTRA 20: secondo fetch sul libro singolo ---
+function mostraDettagli(key) {
+  fetch(`https://openlibrary.org${key}.json`)
+    .then((r) => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    })
+    .then((libro) => {
+      // description può essere una stringa oppure { type, value }
+      const d = libro.description;
+      const testo = typeof d === "string" ? d : d?.value;
+      alert(testo ?? "Nessuna descrizione.");
+    })
+    .catch((err) => mostraErrore(`Dettagli non disponibili: ${err.message}`));
+}
+
+
+// === Avvio ===
+renderLibri(); // libri salvati (Giorno II)
+
+// EXTRA 19: riprendi l'ultima ricerca
+const querySalvata = localStorage.getItem(QUERY_KEY);
+if (querySalvata) {
+  inputCerca.value = querySalvata;
+  cerca(querySalvata);
+}

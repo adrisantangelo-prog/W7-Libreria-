@@ -242,3 +242,102 @@ body {
   border-radius: 4px;
   font: inherit;
 }
+
+
+/* === Giorno III: ricerca === */
+
+.cerca-section {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  padding: 20px 24px;
+  margin: 20px 0;
+}
+
+.cerca-section h2 { margin-top: 0; }
+
+/* senza questa regola display:flex/block vincerebbe su [hidden] */
+.spinner[hidden],
+.alert[hidden] { display: none; }
+
+.spinner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #555;
+  margin: 8px 0;
+}
+
+.spinner::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  border: 3px solid #ddd;
+  border-top-color: hsl(220, 50%, 25%);
+  border-radius: 50%;
+  animation: gira 0.8s linear infinite;
+}
+
+@keyframes gira {
+  to { transform: rotate(360deg); }
+}
+
+.alert {
+  padding: 10px 14px;
+  border-radius: 4px;
+  margin: 8px 0;
+}
+
+.alert-danger {
+  background: #fdecea;
+  color: #8a1c14;
+  border: 1px solid #f1b0aa;
+}
+
+.risultati {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+}
+
+.risultati li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.risultati li:last-child { border-bottom: 0; }
+
+.risultati .azioni {
+  display: flex;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.risultati button {
+  background: white;
+  border: 1px solid hsl(220, 50%, 25%);
+  color: hsl(220, 50%, 25%);
+  border-radius: 4px;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.risultati button:hover { background: #eef1f7; }
+
+.risultati button:disabled {
+  border-color: hsl(140, 40%, 45%);
+  color: hsl(140, 40%, 35%);
+  background: #f0f8f2;
+  cursor: default;
+}
+
+.risultati .nessuno {
+  color: #777;
+  font-style: italic;
+}
